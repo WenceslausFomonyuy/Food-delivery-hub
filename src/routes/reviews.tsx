@@ -1,65 +1,94 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Star } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Star, Trash2 } from "lucide-react";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/reviews")({
   head: () => ({
     meta: [
       { title: "Reviews — White Pie" },
-      { name: "description", content: "4.5 stars across 1,230+ Google reviews. See what guests are saying about White Pie." },
+      { name: "description", content: "Read what guests are saying about White Pie and leave your own review." },
       { property: "og:title", content: "Reviews — White Pie" },
-      { property: "og:description", content: "4.5 stars · 1,230+ reviews. See guest experiences." },
+      { property: "og:description", content: "Real guest reviews of White Pie in Denver." },
     ],
   }),
   component: ReviewsPage,
 });
 
-const reviews = [
-  {
-    name: "Aaron Alba",
-    meta: "Local Guide · 34 reviews",
-    rating: 5,
-    when: "2 months ago",
-    body: "The white pie was amazing. The Sicilian-style pizza was hands down one of the best pizzas I've ever had. The large Caesar salad was huge — easily big enough for 6–8 people to share. Everything tasted fresh and well made. Definitely a spot we'll be coming back to.",
-  },
-  {
-    name: "Hannah Thompson",
-    meta: "5 reviews · 10 photos",
-    rating: 5,
-    when: "2 months ago",
-    body: "This restaurant was incredible! I love the vibe of the place — it was still decorated beautifully and is very aesthetic. Our server was very knowledgeable and friendly, and made sure to explain the menu to us carefully.",
-  },
-  {
-    name: "Guest",
-    meta: "Verified diner",
-    rating: 5,
-    when: "Recently",
-    body: "Wow — great food, great cocktails and wine, lovely ambiance. My new fave place.",
-  },
-  {
-    name: "Guest",
-    meta: "Verified diner",
-    rating: 5,
-    when: "Recently",
-    body: "Great service, amazing wood-fired pizza, and can't beat the happy hour deals.",
-  },
-  {
-    name: "Guest",
-    meta: "Verified diner",
-    rating: 5,
-    when: "Recently",
-    body: "Popped in for lunch and was treated superb by all hosts and staff.",
-  },
+type Review = {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment: string;
+  author_name: string;
+  created_at: string;
+};
+
+const FEATURED = [
+  { name: "Aaron Alba", body: "The white pie was amazing. The Sicilian-style pizza was hands down one of the best pizzas I've ever had. Definitely a spot we'll be coming back to.", rating: 5, when: "2 months ago" },
+  { name: "Hannah Thompson", body: "This restaurant was incredible! I love the vibe of the place. Our server was very knowledgeable and friendly.", rating: 5, when: "2 months ago" },
+  { name: "Verified Guest", body: "Wow — great food, great cocktails and wine, lovely ambiance. My new fave place.", rating: 5, when: "Recently" },
 ];
 
-const distribution = [
-  { stars: 5, pct: 78 },
-  { stars: 4, pct: 14 },
-  { stars: 3, pct: 4 },
-  { stars: 2, pct: 2 },
-  { stars: 1, pct: 2 },
-];
+const commentSchema = z.string().trim().min(3).max(1000);
 
 function ReviewsPage() {
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [authorName, setAuthorName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const load = () => {
+    supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(50)
+      .then(({ data }) => setReviews((data ?? []) as Review[]));
+  };
+  useEffect(load, []);
+
+  useEffect(() => {
+    if (!user) { setAuthorName(""); return; }
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setAuthorName(data?.display_name || user.email?.split("@")[0] || "Guest"));
+  }, [user]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    try { commentSchema.parse(comment); }
+    catch { return toast.error("Comment must be 3–1000 characters"); }
+    if (rating < 1 || rating > 5) return toast.error("Pick a rating");
+
+    setBusy(true);
+    const { error } = await supabase.from("reviews").insert({
+      user_id: user.id,
+      rating,
+      comment: comment.trim(),
+      author_name: authorName.trim() || "Guest",
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Thanks for your review!");
+    setComment(""); setRating(5);
+    load();
+  };
+
+  const removeReview = async (id: string) => {
+    if (!confirm("Delete your review?")) return;
+    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Review deleted");
+    load();
+  };
+
+  const totalReviews = reviews.length + 1230;
+  const avg = reviews.length
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length * 0.3 + 4.5 * 0.7)
+    : 4.5;
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
       <header className="text-center mb-16">
@@ -67,38 +96,90 @@ function ReviewsPage() {
         <h1 className="font-display text-5xl md:text-7xl leading-[1] tracking-tight">Reviews</h1>
       </header>
 
-      <section className="grid md:grid-cols-2 gap-10 mb-20 items-center bg-card border border-border rounded-3xl p-10">
+      <section className="grid md:grid-cols-2 gap-10 mb-16 items-center bg-card border border-border rounded-3xl p-10">
         <div className="text-center md:text-left">
-          <div className="font-display text-7xl md:text-8xl text-primary leading-none">4.5</div>
+          <div className="font-display text-7xl md:text-8xl text-primary leading-none">{avg.toFixed(1)}</div>
           <div className="mt-3 flex justify-center md:justify-start gap-1">
             {[1,2,3,4,5].map(i => (
-              <Star key={i} size={20} className={i <= 4 ? "fill-accent text-accent" : "fill-accent/50 text-accent/50"} />
+              <Star key={i} size={20} className={i <= Math.round(avg) ? "fill-accent text-accent" : "fill-accent/30 text-accent/30"} />
             ))}
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">Based on 1,230+ Google reviews</p>
+          <p className="mt-3 text-sm text-muted-foreground">Based on {totalReviews.toLocaleString()}+ reviews</p>
         </div>
 
-        <div className="space-y-2">
-          {distribution.map((d) => (
-            <div key={d.stars} className="flex items-center gap-3 text-sm">
-              <span className="w-4 text-muted-foreground">{d.stars}</span>
-              <Star size={12} className="fill-accent text-accent" />
-              <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full" style={{ width: `${d.pct}%` }} />
+        <div className="rounded-2xl bg-secondary p-6">
+          {user ? (
+            <form onSubmit={submit} className="space-y-4">
+              <h3 className="font-display text-2xl">Leave a review</h3>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">Rating</label>
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map((s) => (
+                    <button type="button" key={s} onClick={() => setRating(s)} aria-label={`${s} stars`}>
+                      <Star size={26} className={s <= rating ? "fill-accent text-accent" : "fill-transparent text-muted-foreground hover:text-accent"} />
+                    </button>
+                  ))}
+                </div>
               </div>
-              <span className="w-10 text-right text-muted-foreground">{d.pct}%</span>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">Your review</label>
+                <textarea
+                  rows={4}
+                  value={comment}
+                  maxLength={1000}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Tell us about your visit…"
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <p className="text-xs text-muted-foreground mt-1">{comment.length}/1000</p>
+              </div>
+              <button type="submit" disabled={busy} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-60">
+                {busy ? "Posting…" : "Post review"}
+              </button>
+            </form>
+          ) : (
+            <div className="text-center">
+              <h3 className="font-display text-xl mb-2">Want to share your experience?</h3>
+              <p className="text-sm text-muted-foreground mb-4">Sign in to post a review.</p>
+              <Link to="/auth" className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition">
+                Sign in
+              </Link>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
       <section className="grid md:grid-cols-2 gap-6">
-        {reviews.map((r, i) => (
-          <article key={i} className="rounded-2xl bg-card border border-border p-7 hover:shadow-[var(--shadow-soft)] transition">
+        {reviews.map((r) => (
+          <article key={r.id} className="rounded-2xl bg-card border border-border p-7 hover:shadow-[var(--shadow-soft)] transition">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="font-display text-xl">{r.author_name}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleDateString()}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: r.rating }).map((_, k) => (
+                    <Star key={k} size={14} className="fill-accent text-accent" />
+                  ))}
+                </div>
+                {user?.id === r.user_id && (
+                  <button onClick={() => removeReview(r.id)} className="p-1 text-muted-foreground hover:text-destructive" aria-label="Delete review">
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="mt-5 text-foreground/85 leading-relaxed text-sm">"{r.comment}"</p>
+          </article>
+        ))}
+
+        {FEATURED.map((r, i) => (
+          <article key={`f-${i}`} className="rounded-2xl bg-card border border-border p-7">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="font-display text-xl">{r.name}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{r.meta}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">From Google · {r.when}</p>
               </div>
               <div className="flex gap-0.5">
                 {Array.from({ length: r.rating }).map((_, k) => (
@@ -107,21 +188,9 @@ function ReviewsPage() {
               </div>
             </div>
             <p className="mt-5 text-foreground/85 leading-relaxed text-sm">"{r.body}"</p>
-            <p className="mt-4 text-xs text-muted-foreground">{r.when}</p>
           </article>
         ))}
       </section>
-
-      <div className="mt-16 text-center">
-        <a
-          href="https://www.google.com/search?q=White+Pie+Denver+reviews"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
-        >
-          Read all reviews on Google
-        </a>
-      </div>
     </div>
   );
 }
