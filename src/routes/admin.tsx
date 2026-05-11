@@ -60,7 +60,7 @@ function AdminLayout() {
         <aside className="md:sticky md:top-20 self-start">
           <nav className="flex md:flex-col gap-1 overflow-x-auto bg-card border border-border rounded-xl p-2">
             {links.map((l) => {
-              const active = l.exact ? path === l.to : path.startsWith(l.to);
+              const active = "exact" in l && l.exact ? path === l.to : path.startsWith(l.to);
               const Icon = l.icon;
               return (
                 <Link key={l.to} to={l.to}
