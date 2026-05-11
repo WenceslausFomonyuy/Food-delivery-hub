@@ -21,6 +21,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminMenuRouteImport } from './routes/admin.menu'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account.orders.index'
@@ -86,6 +87,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/visit': typeof VisitRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/visit': typeof VisitRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders': typeof AccountOrdersIndexRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/visit': typeof VisitRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/orders': typeof AdminOrdersRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/visit'
     | '/admin/menu'
     | '/admin/orders'
+    | '/admin/reviews'
     | '/admin/'
     | '/account/orders/$orderId'
     | '/account/orders/'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/visit'
     | '/admin/menu'
     | '/admin/orders'
+    | '/admin/reviews'
     | '/admin'
     | '/account/orders/$orderId'
     | '/account/orders'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/visit'
     | '/admin/menu'
     | '/admin/orders'
+    | '/admin/reviews'
     | '/admin/'
     | '/account/orders/$orderId'
     | '/account/orders/'
@@ -317,6 +329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/orders'
@@ -364,12 +383,14 @@ const AccountRouteWithChildren =
 interface AdminRouteChildren {
   AdminMenuRoute: typeof AdminMenuRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminMenuRoute: AdminMenuRoute,
   AdminOrdersRoute: AdminOrdersRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -391,3 +412,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
