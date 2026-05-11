@@ -27,7 +27,7 @@ const schema = z.object({
 function CheckoutPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { items, total, clear } = useCart();
+  const { items, total, discount, coupon, clear } = useCart();
 
   const [form, setForm] = useState({
     customer_name: "",
@@ -100,6 +100,8 @@ function CheckoutPage() {
           address: parsed.address || null,
           notes: parsed.notes || null,
           total,
+          discount,
+          coupon_code: coupon?.code || null,
         })
         .select()
         .single();

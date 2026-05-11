@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          link: string | null
+          link_label: string | null
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          link?: string | null
+          link_label?: string | null
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          link?: string | null
+          link_label?: string | null
+          message?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          updated_at: string
+          uses: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          updated_at?: string
+          uses?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          updated_at?: string
+          uses?: number
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           available: boolean
@@ -47,6 +119,48 @@ export type Database = {
           popular?: boolean
           price?: number
           sort_order?: number
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          replied_at: string | null
+          reply: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          replied_at?: string | null
+          reply?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          replied_at?: string | null
+          reply?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -98,39 +212,51 @@ export type Database = {
       orders: {
         Row: {
           address: string | null
+          coupon_code: string | null
           created_at: string
           customer_name: string
+          discount: number
           fulfillment: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           notes: string | null
+          payment_status: string
           phone: string
           status: Database["public"]["Enums"]["order_status"]
+          stripe_session_id: string | null
           total: number
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
+          coupon_code?: string | null
           created_at?: string
           customer_name: string
+          discount?: number
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           notes?: string | null
+          payment_status?: string
           phone: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           total: number
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
+          coupon_code?: string | null
           created_at?: string
           customer_name?: string
+          discount?: number
           fulfillment?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           notes?: string | null
+          payment_status?: string
           phone?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           total?: number
           updated_at?: string
           user_id?: string
@@ -188,14 +314,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_first_admin: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "staff" | "user"
       fulfillment_type: "pickup" | "delivery"
       order_status:
         | "pending"
@@ -204,6 +360,7 @@ export type Database = {
         | "ready"
         | "completed"
         | "cancelled"
+        | "pending_payment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -331,6 +488,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "staff", "user"],
       fulfillment_type: ["pickup", "delivery"],
       order_status: [
         "pending",
@@ -339,6 +497,7 @@ export const Constants = {
         "ready",
         "completed",
         "cancelled",
+        "pending_payment",
       ],
     },
   },

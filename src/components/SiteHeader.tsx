@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, ShoppingBag, User as UserIcon } from "lucide-react";
+import { Menu, X, ShoppingBag, User as UserIcon, Shield } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const links = [
   { to: "/", label: "Home" },
@@ -10,12 +11,14 @@ const links = [
   { to: "/about", label: "About" },
   { to: "/reviews", label: "Reviews" },
   { to: "/visit", label: "Visit" },
+  { to: "/contact", label: "Contact" },
 ] as const;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
+  const { isStaff } = useUserRole();
   const path = useRouterState({ select: (r) => r.location.pathname });
 
   return (
@@ -48,6 +51,12 @@ export function SiteHeader() {
           ) : (
             <Link to="/auth" className="text-sm font-medium text-foreground/80 hover:text-primary transition">
               Sign in
+            </Link>
+          )}
+
+          {isStaff && (
+            <Link to="/admin" className={`text-sm font-medium hover:text-primary transition ${path.startsWith("/admin") ? "text-primary" : "text-foreground/80"}`}>
+              <span className="inline-flex items-center gap-1.5"><Shield size={15} /> Admin</span>
             </Link>
           )}
 

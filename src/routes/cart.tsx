@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -13,7 +16,33 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { items, setQty, remove, total } = useCart();
+  const { items, setQty, remove, subtotal, discount, total, coupon, setCoupon } = useCart();
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const applyCoupon = async () => {
+    const input = code.trim().toUpperCase();
+    if (!input) return;
+    setBusy(true);
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("code,discount_type,discount_value,active,expires_at")
+      .ilike("code", input)
+      .maybeSingle();
+    setBusy(false);
+    if (error || !data) { toast.error("Coupon not found"); return; }
+    if (!data.active || (data.expires_at && new Date(data.expires_at) < new Date())) {
+      toast.error("Coupon expired"); return;
+    }
+    setCoupon({
+      code: data.code,
+      discount_type: data.discount_type as "percent" | "amount",
+      discount_value: Number(data.discount_value),
+    });
+    setCode("");
+    toast.success(`Coupon ${data.code} applied`);
+  };
+
 
   if (items.length === 0) {
     return (
@@ -59,15 +88,42 @@ function CartPage() {
         ))}
       </ul>
 
-      <div className="mt-8 rounded-2xl bg-card border border-border p-6 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Subtotal</p>
-          <p className="font-display text-3xl text-primary mt-1">${total.toFixed(2)}</p>
+      <div className="mt-6 rounded-2xl bg-card border border-border p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Tag size={16} className="text-primary" />
+          {coupon ? (
+            <div className="flex items-center justify-between flex-1">
+              <span className="text-sm">Coupon <span className="font-semibold">{coupon.code}</span> applied</span>
+              <button onClick={() => setCoupon(null)} className="text-muted-foreground hover:text-destructive" aria-label="Remove coupon">
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-1 gap-2">
+              <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code"
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              <button onClick={applyCoupon} disabled={busy} className="rounded-lg bg-secondary px-4 text-sm font-medium hover:opacity-90 disabled:opacity-60">
+                Apply
+              </button>
+            </div>
+          )}
         </div>
-        <Link to="/checkout" className="inline-flex items-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
+
+        <div className="space-y-1.5 text-sm border-t border-border pt-4">
+          <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+          {discount > 0 && (
+            <div className="flex justify-between text-primary"><span>Discount</span><span>-${discount.toFixed(2)}</span></div>
+          )}
+          <div className="flex justify-between font-display text-2xl text-primary pt-2 border-t border-border mt-2">
+            <span>Total</span><span>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <Link to="/checkout" className="block text-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
           Checkout →
         </Link>
       </div>
+
     </div>
   );
 }
