@@ -20,6 +20,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AccountOrdersIndexRouteImport } from './routes/account.orders.index'
 import { Route as AccountOrdersOrderIdRouteImport } from './routes/account.orders.$orderId'
 
@@ -78,6 +79,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AccountOrdersIndexRoute = AccountOrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -93,7 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/menu': typeof MenuRoute
   '/reviews': typeof ReviewsRoute
   '/visit': typeof VisitRoute
+  '/admin/': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
 }
@@ -108,7 +115,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -116,6 +122,7 @@ export interface FileRoutesByTo {
   '/menu': typeof MenuRoute
   '/reviews': typeof ReviewsRoute
   '/visit': typeof VisitRoute
+  '/admin': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders': typeof AccountOrdersIndexRoute
 }
@@ -124,7 +131,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account': typeof AccountRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -132,6 +139,7 @@ export interface FileRoutesById {
   '/menu': typeof MenuRoute
   '/reviews': typeof ReviewsRoute
   '/visit': typeof VisitRoute
+  '/admin/': typeof AdminIndexRoute
   '/account/orders/$orderId': typeof AccountOrdersOrderIdRoute
   '/account/orders/': typeof AccountOrdersIndexRoute
 }
@@ -149,6 +157,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/reviews'
     | '/visit'
+    | '/admin/'
     | '/account/orders/$orderId'
     | '/account/orders/'
   fileRoutesByTo: FileRoutesByTo
@@ -156,7 +165,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account'
-    | '/admin'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -164,6 +172,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/reviews'
     | '/visit'
+    | '/admin'
     | '/account/orders/$orderId'
     | '/account/orders'
   id:
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/reviews'
     | '/visit'
+    | '/admin/'
     | '/account/orders/$orderId'
     | '/account/orders/'
   fileRoutesById: FileRoutesById
@@ -187,7 +197,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -276,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/account/orders/': {
       id: '/account/orders/'
       path: '/orders'
@@ -306,11 +323,21 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountRoute: AccountRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
@@ -322,3 +349,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
