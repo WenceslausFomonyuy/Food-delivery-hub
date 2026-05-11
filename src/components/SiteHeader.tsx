@@ -17,6 +17,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const { user } = useAuth();
+  const { isStaff } = useUserRole();
   const path = useRouterState({ select: (r) => r.location.pathname });
 
   return (
