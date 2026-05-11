@@ -49,7 +49,7 @@ function AdminMenu() {
   };
 
   const toggle = async (id: string, field: "available" | "popular", value: boolean) => {
-    await supabase.from("menu_items").update({ [field]: value }).eq("id", id);
+    await supabase.from("menu_items").update({ [field]: value } as never).eq("id", id);
     load();
   };
 
