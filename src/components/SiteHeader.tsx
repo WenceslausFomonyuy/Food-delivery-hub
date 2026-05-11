@@ -53,6 +53,12 @@ export function SiteHeader() {
             </Link>
           )}
 
+          {isStaff && (
+            <Link to="/admin" className={`text-sm font-medium hover:text-primary transition ${path.startsWith("/admin") ? "text-primary" : "text-foreground/80"}`}>
+              <span className="inline-flex items-center gap-1.5"><Shield size={15} /> Admin</span>
+            </Link>
+          )}
+
           <Link to="/cart" className="relative inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
             <ShoppingBag size={15} className="mr-2" /> Cart
             {count > 0 && (
