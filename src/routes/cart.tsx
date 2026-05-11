@@ -16,7 +16,33 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { items, setQty, remove, total } = useCart();
+  const { items, setQty, remove, subtotal, discount, total, coupon, setCoupon } = useCart();
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const applyCoupon = async () => {
+    const input = code.trim().toUpperCase();
+    if (!input) return;
+    setBusy(true);
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("code,discount_type,discount_value,active,expires_at")
+      .ilike("code", input)
+      .maybeSingle();
+    setBusy(false);
+    if (error || !data) { toast.error("Coupon not found"); return; }
+    if (!data.active || (data.expires_at && new Date(data.expires_at) < new Date())) {
+      toast.error("Coupon expired"); return;
+    }
+    setCoupon({
+      code: data.code,
+      discount_type: data.discount_type as "percent" | "amount",
+      discount_value: Number(data.discount_value),
+    });
+    setCode("");
+    toast.success(`Coupon ${data.code} applied`);
+  };
+
 
   if (items.length === 0) {
     return (
