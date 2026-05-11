@@ -88,15 +88,42 @@ function CartPage() {
         ))}
       </ul>
 
-      <div className="mt-8 rounded-2xl bg-card border border-border p-6 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Subtotal</p>
-          <p className="font-display text-3xl text-primary mt-1">${total.toFixed(2)}</p>
+      <div className="mt-6 rounded-2xl bg-card border border-border p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Tag size={16} className="text-primary" />
+          {coupon ? (
+            <div className="flex items-center justify-between flex-1">
+              <span className="text-sm">Coupon <span className="font-semibold">{coupon.code}</span> applied</span>
+              <button onClick={() => setCoupon(null)} className="text-muted-foreground hover:text-destructive" aria-label="Remove coupon">
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-1 gap-2">
+              <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code"
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              <button onClick={applyCoupon} disabled={busy} className="rounded-lg bg-secondary px-4 text-sm font-medium hover:opacity-90 disabled:opacity-60">
+                Apply
+              </button>
+            </div>
+          )}
         </div>
-        <Link to="/checkout" className="inline-flex items-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
+
+        <div className="space-y-1.5 text-sm border-t border-border pt-4">
+          <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+          {discount > 0 && (
+            <div className="flex justify-between text-primary"><span>Discount</span><span>-${discount.toFixed(2)}</span></div>
+          )}
+          <div className="flex justify-between font-display text-2xl text-primary pt-2 border-t border-border mt-2">
+            <span>Total</span><span>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <Link to="/checkout" className="block text-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
           Checkout →
         </Link>
       </div>
+
     </div>
   );
 }
