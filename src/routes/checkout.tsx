@@ -100,6 +100,8 @@ function CheckoutPage() {
           address: parsed.address || null,
           notes: parsed.notes || null,
           total,
+          discount,
+          coupon_code: coupon?.code || null,
         })
         .select()
         .single();
