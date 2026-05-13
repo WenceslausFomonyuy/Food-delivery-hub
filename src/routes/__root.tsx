@@ -81,11 +81,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "White Pie — Oak-Fired Pizza & Italian Dishes in Denver" },
       { name: "description", content: "Oak-fired pizzas and seasonal Italian dishes in a casually stylish Denver parlor. Dine-in, pickup and delivery." },
       { name: "author", content: "White Pie" },
-      { property: "og:title", content: "White Pie — Oak-Fired Pizza in Denver" },
-      { property: "og:description", content: "Oak-fired pizzas and seasonal Italian dishes in the heart of Denver." },
+      { property: "og:title", content: "White Pie — Oak-Fired Pizza & Italian Dishes in Denver" },
+      { property: "og:description", content: "Oak-fired pizzas and seasonal Italian dishes in a casually stylish Denver parlor. Dine-in, pickup and delivery." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "White Pie — Oak-Fired Pizza & Italian Dishes in Denver" },
+      { name: "twitter:description", content: "Oak-fired pizzas and seasonal Italian dishes in a casually stylish Denver parlor. Dine-in, pickup and delivery." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ed5ea9eb-ea0c-40e8-90da-e821d5bf4910/id-preview-18bfd3f1--2838e8fb-07b4-4861-a3bc-4a9b7c7f5064.lovable.app-1778674176463.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ed5ea9eb-ea0c-40e8-90da-e821d5bf4910/id-preview-18bfd3f1--2838e8fb-07b4-4861-a3bc-4a9b7c7f5064.lovable.app-1778674176463.png" },
     ],
     links: [
       {
