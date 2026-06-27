@@ -131,10 +131,28 @@ function CartPage() {
           </div>
         </div>
 
+        <div className="border-t border-border pt-4">
+          <label htmlFor="contact-email" className="block text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+            Contact email
+          </label>
+          <input
+            id="contact-email"
+            type="email"
+            value={contactEmail}
+            onChange={(e) => onEmailChange(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            We'll reach out here to confirm your order and finalize payment.
+          </p>
+        </div>
+
         <Link to="/checkout" className="block text-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
           Checkout →
         </Link>
       </div>
+
 
     </div>
   );
