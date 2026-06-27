@@ -19,6 +19,18 @@ function CartPage() {
   const { items, setQty, remove, subtotal, discount, total, coupon, setCoupon } = useCart();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  const [contactEmail, setContactEmail] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return window.localStorage.getItem("whitepie:contact_email") ?? "";
+  });
+
+  const onEmailChange = (value: string) => {
+    setContactEmail(value);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("whitepie:contact_email", value);
+    }
+  };
+
 
   const applyCoupon = async () => {
     const input = code.trim().toUpperCase();
