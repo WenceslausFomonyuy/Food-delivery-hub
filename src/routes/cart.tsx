@@ -151,6 +151,13 @@ function CartPage() {
         <Link to="/checkout" className="block text-center rounded-full bg-primary px-7 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition shadow-[var(--shadow-warm)]">
           Checkout →
         </Link>
+
+        <div className="text-center pt-2">
+          <p className="text-xs text-muted-foreground">Questions about your order?</p>
+          <a href="mailto:info@whitepie.com" className="text-sm font-medium text-primary hover:underline">
+            info@whitepie.com
+          </a>
+        </div>
       </div>
 
 
