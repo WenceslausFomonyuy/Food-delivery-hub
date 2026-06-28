@@ -293,7 +293,9 @@ export type Database = {
           comment: string
           created_at: string
           id: string
+          menu_item_id: string
           rating: number
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -301,7 +303,9 @@ export type Database = {
           comment: string
           created_at?: string
           id?: string
+          menu_item_id: string
           rating: number
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -309,10 +313,20 @@ export type Database = {
           comment?: string
           created_at?: string
           id?: string
+          menu_item_id?: string
           rating?: number
+          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reviews_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
