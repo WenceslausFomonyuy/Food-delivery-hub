@@ -97,15 +97,21 @@ function HomePage() {
             { name: "Ricky Ricotta", note: "Whipped ricotta, hot honey, cracked pepper", price: "$20" },
             { name: "The White Pie", note: "Mozzarella, garlic cream, pecorino, herbs", price: "$21" },
           ].map((p) => (
-            <article key={p.name} className="group rounded-2xl border border-border bg-card p-6 hover:border-primary/40 hover:shadow-[var(--shadow-soft)] transition-all">
+            <Link
+              key={p.name}
+              to="/menu"
+              search={{ item: p.name }}
+              className="group rounded-2xl border border-border bg-card p-6 hover:border-primary/40 hover:shadow-[var(--shadow-soft)] transition-all block"
+            >
               <div className="flex items-baseline justify-between gap-4">
                 <h3 className="font-display text-2xl">{p.name}</h3>
                 <span className="text-primary font-medium">{p.price}</span>
               </div>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{p.note}</p>
               <div className="mt-6 h-px w-12 bg-primary/40 group-hover:w-24 transition-all" />
-            </article>
+            </Link>
           ))}
+
         </div>
         <div className="mt-10">
           <Link to="/menu" className="text-sm font-medium text-primary hover:underline underline-offset-4">

@@ -6,6 +6,9 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/menu")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    item: typeof search.item === "string" ? search.item : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Menu — White Pie Denver" },
@@ -16,6 +19,7 @@ export const Route = createFileRoute("/menu")({
   }),
   component: MenuPage,
 });
+
 
 type Item = {
   id: string;
@@ -29,10 +33,16 @@ type Item = {
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
 
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function MenuPage() {
+  const { item: focusItem } = Route.useSearch();
   const [items, setItems] = useState<Item[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<Record<string, number>>({});
+  const [highlight, setHighlight] = useState<string | null>(null);
   const { add } = useCart();
 
   useEffect(() => {
@@ -46,6 +56,22 @@ function MenuPage() {
         else setItems((data ?? []) as Item[]);
       });
   }, []);
+
+  useEffect(() => {
+    if (!focusItem || !items) return;
+    const match = items.find(
+      (i) => i.name.toLowerCase() === focusItem.toLowerCase() || slugify(i.name) === slugify(focusItem),
+    );
+    if (!match) return;
+    setHighlight(match.id);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`menu-item-${match.id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setHighlight(null), 2400);
+    return () => clearTimeout(t);
+  }, [focusItem, items]);
+
 
   const handleAdd = (item: Item) => {
     add({ id: item.id, name: item.name, price: Number(item.price) });
@@ -99,8 +125,18 @@ function MenuPage() {
               {grouped[cat].map((item) => {
                 const justAdded = !!added[item.id];
                 return (
-                  <li key={item.id} className="group flex gap-5 items-start rounded-xl p-4 -mx-4 hover:bg-secondary/60 transition">
+                  <li
+                    key={item.id}
+                    id={`menu-item-${item.id}`}
+                    className={`group flex gap-5 items-start rounded-xl p-4 -mx-4 transition-all ${
+                      highlight === item.id
+                        ? "bg-accent/20 ring-2 ring-primary/50"
+                        : "hover:bg-secondary/60"
+                    }`}
+                  >
                     <div className="flex-1 min-w-0">
+
+
                       <div className="flex items-baseline gap-3 flex-wrap">
                         <h3 className="font-display text-xl">{item.name}</h3>
                         {item.popular && (
