@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Star, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Star, Trash2, Pencil, X, ChevronDown } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -10,9 +10,9 @@ export const Route = createFileRoute("/reviews")({
   head: () => ({
     meta: [
       { title: "Reviews — White Pie" },
-      { name: "description", content: "Read what guests are saying about White Pie and leave your own review." },
+      { name: "description", content: "Rate and review the dishes at White Pie. One review per dish, editable any time." },
       { property: "og:title", content: "Reviews — White Pie" },
-      { property: "og:description", content: "Real guest reviews of White Pie in Denver." },
+      { property: "og:description", content: "Real guest reviews of dishes at White Pie." },
     ],
   }),
   component: ReviewsPage,
@@ -21,33 +21,75 @@ export const Route = createFileRoute("/reviews")({
 type Review = {
   id: string;
   user_id: string;
+  menu_item_id: string;
   rating: number;
   comment: string;
   author_name: string;
   created_at: string;
+  updated_at: string;
 };
 
-const FEATURED = [
-  { name: "Aaron Alba", body: "The white pie was amazing. The Sicilian-style pizza was hands down one of the best pizzas I've ever had. Definitely a spot we'll be coming back to.", rating: 5, when: "2 months ago" },
-  { name: "Hannah Thompson", body: "This restaurant was incredible! I love the vibe of the place. Our server was very knowledgeable and friendly.", rating: 5, when: "2 months ago" },
-  { name: "Verified Guest", body: "Wow — great food, great cocktails and wine, lovely ambiance. My new fave place.", rating: 5, when: "Recently" },
-];
+type MenuItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  price: number;
+};
 
 const commentSchema = z.string().trim().min(3).max(1000);
 
+function avgOf(rs: Review[]) {
+  if (!rs.length) return 0;
+  return rs.reduce((s, r) => s + r.rating, 0) / rs.length;
+}
+
+function Stars({ value, size = 14, onPick }: { value: number; size?: number; onPick?: (n: number) => void }) {
+  return (
+    <div className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => {
+        const filled = s <= Math.round(value);
+        const Cmp = onPick ? "button" : "span";
+        return (
+          <Cmp
+            key={s}
+            {...(onPick ? { type: "button" as const, onClick: () => onPick(s), "aria-label": `${s} stars` } : {})}
+            className={onPick ? "cursor-pointer" : ""}
+          >
+            <Star size={size} className={filled ? "fill-accent text-accent" : "fill-transparent text-muted-foreground"} />
+          </Cmp>
+        );
+      })}
+    </div>
+  );
+}
+
 function ReviewsPage() {
   const { user } = useAuth();
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
+  const [openItem, setOpenItem] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
+  const [draft, setDraft] = useState<{ rating: number; comment: string }>({ rating: 5, comment: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const load = () => {
-    supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(50)
+  const loadReviews = () =>
+    supabase
+      .from("reviews")
+      .select("*")
+      .order("created_at", { ascending: false })
       .then(({ data }) => setReviews((data ?? []) as Review[]));
-  };
-  useEffect(load, []);
+
+  useEffect(() => {
+    supabase
+      .from("menu_items")
+      .select("id,name,description,category,price")
+      .eq("available", true)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => setItems((data ?? []) as MenuItem[]));
+    loadReviews();
+  }, []);
 
   useEffect(() => {
     if (!user) { setAuthorName(""); return; }
@@ -55,25 +97,56 @@ function ReviewsPage() {
       .then(({ data }) => setAuthorName(data?.display_name || user.email?.split("@")[0] || "Guest"));
   }, [user]);
 
+  const reviewsByItem = useMemo(() => {
+    const m: Record<string, Review[]> = {};
+    for (const r of reviews) (m[r.menu_item_id] ||= []).push(r);
+    return m;
+  }, [reviews]);
+
+  const myReviewFor = (itemId: string) =>
+    user ? reviews.find((r) => r.menu_item_id === itemId && r.user_id === user.id) : undefined;
+
+  const openComposer = (itemId: string, existing?: Review) => {
+    if (!user) return toast.error("Sign in to leave a review");
+    setOpenItem(itemId);
+    if (existing) {
+      setEditingId(existing.id);
+      setDraft({ rating: existing.rating, comment: existing.comment });
+    } else {
+      setEditingId(null);
+      setDraft({ rating: 5, comment: "" });
+    }
+  };
+
+  const closeComposer = () => {
+    setOpenItem(null);
+    setEditingId(null);
+    setDraft({ rating: 5, comment: "" });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-    try { commentSchema.parse(comment); }
+    if (!user || !openItem) return;
+    try { commentSchema.parse(draft.comment); }
     catch { return toast.error("Comment must be 3–1000 characters"); }
-    if (rating < 1 || rating > 5) return toast.error("Pick a rating");
+    if (draft.rating < 1 || draft.rating > 5) return toast.error("Pick a rating");
 
     setBusy(true);
-    const { error } = await supabase.from("reviews").insert({
+    const payload = {
       user_id: user.id,
-      rating,
-      comment: comment.trim(),
+      menu_item_id: openItem,
+      rating: draft.rating,
+      comment: draft.comment.trim(),
       author_name: authorName.trim() || "Guest",
-    });
+    };
+    const { error } = await supabase
+      .from("reviews")
+      .upsert(payload, { onConflict: "user_id,menu_item_id" });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Thanks for your review!");
-    setComment(""); setRating(5);
-    load();
+    toast.success(editingId ? "Review updated" : "Thanks for your review!");
+    closeComposer();
+    loadReviews();
   };
 
   const removeReview = async (id: string) => {
@@ -81,116 +154,182 @@ function ReviewsPage() {
     const { error } = await supabase.from("reviews").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Review deleted");
-    load();
+    loadReviews();
   };
 
+  const overallAvg = reviews.length ? avgOf(reviews) : 4.5;
   const totalReviews = reviews.length + 1230;
-  const avg = reviews.length
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length * 0.3 + 4.5 * 0.7)
-    : 4.5;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-      <header className="text-center mb-16">
-        <p className="text-xs uppercase tracking-[0.25em] text-primary mb-4">What guests say</p>
+    <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
+      <header className="text-center mb-12">
+        <p className="text-xs uppercase tracking-[0.25em] text-primary mb-4">Rate the dishes</p>
         <h1 className="font-display text-5xl md:text-7xl leading-[1] tracking-tight">Reviews</h1>
+        <p className="mt-6 text-muted-foreground max-w-xl mx-auto">
+          Rate each dish you've tried. You can edit or remove your review any time.
+        </p>
       </header>
 
-      <section className="grid md:grid-cols-2 gap-10 mb-16 items-center bg-card border border-border rounded-3xl p-10">
-        <div className="text-center md:text-left">
-          <div className="font-display text-7xl md:text-8xl text-primary leading-none">{avg.toFixed(1)}</div>
-          <div className="mt-3 flex justify-center md:justify-start gap-1">
-            {[1,2,3,4,5].map(i => (
-              <Star key={i} size={20} className={i <= Math.round(avg) ? "fill-accent text-accent" : "fill-accent/30 text-accent/30"} />
-            ))}
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground">Based on {totalReviews.toLocaleString()}+ reviews</p>
+      <section className="grid md:grid-cols-3 gap-6 mb-14 bg-card border border-border rounded-3xl p-8 items-center">
+        <div className="text-center md:text-left md:col-span-1">
+          <div className="font-display text-6xl md:text-7xl text-primary leading-none">{overallAvg.toFixed(1)}</div>
+          <div className="mt-3 flex justify-center md:justify-start"><Stars value={overallAvg} size={18} /></div>
+          <p className="mt-2 text-xs text-muted-foreground">{totalReviews.toLocaleString()}+ total reviews</p>
         </div>
-
-        <div className="rounded-2xl bg-secondary p-6">
+        <div className="md:col-span-2 text-sm text-muted-foreground">
           {user ? (
-            <form onSubmit={submit} className="space-y-4">
-              <h3 className="font-display text-2xl">Leave a review</h3>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">Rating</label>
-                <div className="flex gap-1">
-                  {[1,2,3,4,5].map((s) => (
-                    <button type="button" key={s} onClick={() => setRating(s)} aria-label={`${s} stars`}>
-                      <Star size={26} className={s <= rating ? "fill-accent text-accent" : "fill-transparent text-muted-foreground hover:text-accent"} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">Your review</label>
-                <textarea
-                  rows={4}
-                  value={comment}
-                  maxLength={1000}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Tell us about your visit…"
-                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <p className="text-xs text-muted-foreground mt-1">{comment.length}/1000</p>
-              </div>
-              <button type="submit" disabled={busy} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-60">
-                {busy ? "Posting…" : "Post review"}
-              </button>
-            </form>
+            <p>Signed in as <span className="text-foreground font-medium">{authorName || "Guest"}</span>. Tap any dish below to leave or edit your review.</p>
           ) : (
-            <div className="text-center">
-              <h3 className="font-display text-xl mb-2">Want to share your experience?</h3>
-              <p className="text-sm text-muted-foreground mb-4">Sign in to post a review.</p>
-              <Link to="/auth" className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition">
-                Sign in
-              </Link>
-            </div>
+            <p>
+              <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to rate and review individual dishes.
+            </p>
           )}
         </div>
       </section>
 
-      <section className="grid md:grid-cols-2 gap-6">
-        {reviews.map((r) => (
-          <article key={r.id} className="rounded-2xl bg-card border border-border p-7 hover:shadow-[var(--shadow-soft)] transition">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="font-display text-xl">{r.author_name}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleDateString()}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: r.rating }).map((_, k) => (
-                    <Star key={k} size={14} className="fill-accent text-accent" />
-                  ))}
-                </div>
-                {user?.id === r.user_id && (
-                  <button onClick={() => removeReview(r.id)} className="p-1 text-muted-foreground hover:text-destructive" aria-label="Delete review">
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="mt-5 text-foreground/85 leading-relaxed text-sm">"{r.comment}"</p>
-          </article>
-        ))}
+      {items.length === 0 && (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-secondary animate-pulse" />)}
+        </div>
+      )}
 
-        {FEATURED.map((r, i) => (
-          <article key={`f-${i}`} className="rounded-2xl bg-card border border-border p-7">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="font-display text-xl">{r.name}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">From Google · {r.when}</p>
+      <ul className="space-y-4">
+        {items.map((item) => {
+          const dishReviews = reviewsByItem[item.id] ?? [];
+          const dishAvg = avgOf(dishReviews);
+          const mine = myReviewFor(item.id);
+          const isOpen = openItem === item.id;
+
+          return (
+            <li key={item.id} className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="flex items-start gap-4 p-5 md:p-6">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h3 className="font-display text-xl md:text-2xl">{item.name}</h3>
+                    <span className="text-xs uppercase tracking-widest text-muted-foreground">{item.category}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-sm">
+                    <Stars value={dishAvg} />
+                    <span className="text-foreground/80">
+                      {dishReviews.length
+                        ? `${dishAvg.toFixed(1)} · ${dishReviews.length} review${dishReviews.length === 1 ? "" : "s"}`
+                        : "No reviews yet"}
+                    </span>
+                  </div>
+                  {item.description && (
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 shrink-0">
+                  {mine ? (
+                    <button
+                      onClick={() => openComposer(item.id, mine)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/70 transition"
+                    >
+                      <Pencil size={12} /> Edit your review
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => openComposer(item.id)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 transition"
+                    >
+                      <Star size={12} /> Rate this dish
+                    </button>
+                  )}
+                  {dishReviews.length > 0 && (
+                    <button
+                      onClick={() => setOpenItem(isOpen ? null : item.id)}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition"
+                    >
+                      <ChevronDown size={12} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      {isOpen ? "Hide" : "See"} reviews
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-0.5">
-                {Array.from({ length: r.rating }).map((_, k) => (
-                  <Star key={k} size={14} className="fill-accent text-accent" />
-                ))}
-              </div>
-            </div>
-            <p className="mt-5 text-foreground/85 leading-relaxed text-sm">"{r.body}"</p>
-          </article>
-        ))}
-      </section>
+
+              {isOpen && (
+                <div className="border-t border-border bg-secondary/40 p-5 md:p-6 space-y-5">
+                  {user && (
+                    <form onSubmit={submit} className="rounded-xl bg-background border border-border p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="font-display text-base">
+                          {editingId ? "Edit your review" : `Rate "${item.name}"`}
+                        </h4>
+                        <button type="button" onClick={closeComposer} className="text-muted-foreground hover:text-foreground" aria-label="Close">
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <Stars value={draft.rating} size={26} onPick={(n) => setDraft((d) => ({ ...d, rating: n }))} />
+                      <textarea
+                        rows={3}
+                        maxLength={1000}
+                        value={draft.comment}
+                        onChange={(e) => setDraft((d) => ({ ...d, comment: e.target.value }))}
+                        placeholder="What did you think of this dish?"
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">{draft.comment.length}/1000</p>
+                        <button
+                          type="submit"
+                          disabled={busy}
+                          className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-60"
+                        >
+                          {busy ? "Saving…" : editingId ? "Save changes" : "Post review"}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {dishReviews.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Be the first to review this dish.</p>
+                  ) : (
+                    <ul className="space-y-4">
+                      {dishReviews.map((r) => (
+                        <li key={r.id} className="rounded-xl bg-background border border-border p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium text-sm">{r.author_name}</p>
+                              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                                <Stars value={r.rating} size={12} />
+                                <span>
+                                  {new Date(r.created_at).toLocaleDateString()}
+                                  {r.updated_at && r.updated_at !== r.created_at ? " · edited" : ""}
+                                </span>
+                              </div>
+                            </div>
+                            {user?.id === r.user_id && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => openComposer(item.id, r)}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground"
+                                  aria-label="Edit review"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  onClick={() => removeReview(r.id)}
+                                  className="p-1.5 text-muted-foreground hover:text-destructive"
+                                  aria-label="Delete review"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-3 text-sm text-foreground/85 leading-relaxed">{r.comment}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
