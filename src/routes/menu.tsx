@@ -6,6 +6,9 @@ import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/menu")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    item: typeof search.item === "string" ? search.item : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Menu — White Pie Denver" },
@@ -16,6 +19,7 @@ export const Route = createFileRoute("/menu")({
   }),
   component: MenuPage,
 });
+
 
 type Item = {
   id: string;
