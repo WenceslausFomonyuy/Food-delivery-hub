@@ -134,6 +134,8 @@ function MenuPage() {
                         : "hover:bg-secondary/60"
                     }`}
                   >
+                    <div className="flex-1 min-w-0">
+
 
                       <div className="flex items-baseline gap-3 flex-wrap">
                         <h3 className="font-display text-xl">{item.name}</h3>
