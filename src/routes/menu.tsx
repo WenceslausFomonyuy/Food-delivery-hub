@@ -33,10 +33,16 @@ type Item = {
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
 
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function MenuPage() {
+  const { item: focusItem } = Route.useSearch();
   const [items, setItems] = useState<Item[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<Record<string, number>>({});
+  const [highlight, setHighlight] = useState<string | null>(null);
   const { add } = useCart();
 
   useEffect(() => {
@@ -50,6 +56,22 @@ function MenuPage() {
         else setItems((data ?? []) as Item[]);
       });
   }, []);
+
+  useEffect(() => {
+    if (!focusItem || !items) return;
+    const match = items.find(
+      (i) => i.name.toLowerCase() === focusItem.toLowerCase() || slugify(i.name) === slugify(focusItem),
+    );
+    if (!match) return;
+    setHighlight(match.id);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`menu-item-${match.id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setHighlight(null), 2400);
+    return () => clearTimeout(t);
+  }, [focusItem, items]);
+
 
   const handleAdd = (item: Item) => {
     add({ id: item.id, name: item.name, price: Number(item.price) });
