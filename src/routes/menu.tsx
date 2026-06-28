@@ -125,8 +125,16 @@ function MenuPage() {
               {grouped[cat].map((item) => {
                 const justAdded = !!added[item.id];
                 return (
-                  <li key={item.id} className="group flex gap-5 items-start rounded-xl p-4 -mx-4 hover:bg-secondary/60 transition">
-                    <div className="flex-1 min-w-0">
+                  <li
+                    key={item.id}
+                    id={`menu-item-${item.id}`}
+                    className={`group flex gap-5 items-start rounded-xl p-4 -mx-4 transition-all ${
+                      highlight === item.id
+                        ? "bg-accent/20 ring-2 ring-primary/50"
+                        : "hover:bg-secondary/60"
+                    }`}
+                  >
+
                       <div className="flex items-baseline gap-3 flex-wrap">
                         <h3 className="font-display text-xl">{item.name}</h3>
                         {item.popular && (
