@@ -266,38 +266,6 @@ function ReviewsPage() {
 
               {isOpen && (
                 <div className="border-t border-border bg-secondary/40 p-5 md:p-6 space-y-5">
-                  {user && (
-                    <form onSubmit={submit} className="rounded-xl bg-background border border-border p-4 space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <h4 className="font-display text-base">
-                          {editingId ? "Edit your review" : `Rate "${item.name}"`}
-                        </h4>
-                        <button type="button" onClick={closeComposer} className="text-muted-foreground hover:text-foreground" aria-label="Close">
-                          <X size={16} />
-                        </button>
-                      </div>
-                      <Stars value={draft.rating} size={26} onPick={(n) => setDraft((d) => ({ ...d, rating: n }))} />
-                      <textarea
-                        rows={3}
-                        maxLength={1000}
-                        value={draft.comment}
-                        onChange={(e) => setDraft((d) => ({ ...d, comment: e.target.value }))}
-                        placeholder="What did you think of this dish?"
-                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      />
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">{draft.comment.length}/1000</p>
-                        <button
-                          type="submit"
-                          disabled={busy}
-                          className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-60"
-                        >
-                          {busy ? "Saving…" : editingId ? "Save changes" : "Post review"}
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
                   {dishReviews.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Be the first to review this dish.</p>
                   ) : (
@@ -345,6 +313,58 @@ function ReviewsPage() {
           );
         })}
       </ul>
+
+      <Dialog open={!!composerItemId} onOpenChange={(o) => !o && closeComposer()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">
+              {editingId ? "Edit your review" : "Rate this dish"}
+            </DialogTitle>
+            <DialogDescription>
+              {composerItem ? composerItem.name : ""}
+              {composerItem?.category ? ` · ${composerItem.category}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={submit} className="space-y-4">
+            <div className="flex flex-col items-center gap-2 py-2">
+              <Stars value={draft.rating} size={36} onPick={(n) => setDraft((d) => ({ ...d, rating: n }))} />
+              <p className="text-xs text-muted-foreground">
+                {["Tap a star", "Hated it", "Not great", "It was okay", "Liked it", "Loved it"][draft.rating] ?? ""}
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Your review</label>
+              <textarea
+                rows={5}
+                maxLength={1000}
+                value={draft.comment}
+                onChange={(e) => setDraft((d) => ({ ...d, comment: e.target.value }))}
+                placeholder="Describe your experience (optional)"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-right text-xs text-muted-foreground">{draft.comment.length}/1000</p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-2">
+              <button
+                type="button"
+                onClick={closeComposer}
+                className="rounded-full border border-border bg-background px-4 py-2 text-xs font-medium hover:bg-secondary/60 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-full bg-primary px-5 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-60"
+              >
+                {busy ? "Saving…" : editingId ? "Save changes" : "Post review"}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
