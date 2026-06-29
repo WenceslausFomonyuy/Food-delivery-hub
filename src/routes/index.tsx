@@ -55,10 +55,7 @@ function HomePage() {
     <>
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroPizza} alt="Oak-fired pizza with burrata and prosciutto" className="h-full w-full object-cover" width={1600} height={1200} />
-          <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-charcoal/30 to-charcoal/90" />
-        </div>
+        <HeroSlideshow />
 
         <div className="relative mx-auto max-w-7xl px-6 pt-28 pb-32 md:pt-40 md:pb-44">
           <div className="max-w-2xl text-cream">
