@@ -93,24 +93,30 @@ function HomePage() {
 
       {/* HIGHLIGHTS STRIP */}
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-2 md:grid-cols-5 gap-6 text-sm">
-          {[
-            { icon: Flame, label: "Oak-fired daily" },
-            { icon: MapPin, label: "1702 N Humboldt St" },
-            { icon: Clock, label: "Opens 10 am" },
-            { icon: Star, label: "4.5 ★ Google" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-3">
-              <Icon size={18} className="text-primary" />
-              <span className="text-foreground/80">{label}</span>
-            </div>
-          ))}
-          <a href="mailto:info@whitepie.com" className="flex items-center gap-3 hover:text-primary transition-colors">
-            <Mail size={18} className="text-primary" />
-            <span className="text-foreground/80 hover:text-primary">info@whitepie.com</span>
+        <div className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 text-sm">
+          <Link to="/menu" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+            <Flame size={18} className="shrink-0 text-primary" />
+            <span className="truncate text-foreground/80">Oak-fired daily</span>
+          </Link>
+          <Link to="/visit" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+            <MapPin size={18} className="shrink-0 text-primary" />
+            <span className="truncate text-foreground/80">1702 N Humboldt St</span>
+          </Link>
+          <Link to="/visit" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+            <Clock size={18} className="shrink-0 text-primary" />
+            <span className="truncate text-foreground/80">Opens 10 am</span>
+          </Link>
+          <Link to="/reviews" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+            <Star size={18} className="shrink-0 text-primary" />
+            <span className="truncate text-foreground/80">4.5 ★ Google</span>
+          </Link>
+          <a href="mailto:info@whitepie.com" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+            <Mail size={18} className="shrink-0 text-primary" />
+            <span className="truncate text-foreground/80">info@whitepie.com</span>
           </a>
         </div>
       </section>
+
 
       {/* SIGNATURE PIES */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:py-32">
