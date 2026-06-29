@@ -93,7 +93,7 @@ function HomePage() {
 
       {/* HIGHLIGHTS STRIP */}
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+        <div className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-2 md:grid-cols-5 gap-6 text-sm">
           {[
             { icon: Flame, label: "Oak-fired daily" },
             { icon: MapPin, label: "1702 N Humboldt St" },
@@ -105,6 +105,10 @@ function HomePage() {
               <span className="text-foreground/80">{label}</span>
             </div>
           ))}
+          <a href="mailto:info@whitepie.com" className="flex items-center gap-3 hover:text-primary transition-colors">
+            <Mail size={18} className="text-primary" />
+            <span className="text-foreground/80 hover:text-primary">info@whitepie.com</span>
+          </a>
         </div>
       </section>
 
