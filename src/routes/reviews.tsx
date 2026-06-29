@@ -77,6 +77,7 @@ function ReviewsPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const [composerItemId, setComposerItemId] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
   const [draft, setDraft] = useState<{ rating: number; comment: string }>({ rating: 5, comment: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -114,9 +115,14 @@ function ReviewsPage() {
   const myReviewFor = (itemId: string) =>
     user ? reviews.find((r) => r.menu_item_id === itemId && r.user_id === user.id) : undefined;
 
+  const composerItem = useMemo(
+    () => items.find((i) => i.id === composerItemId) ?? null,
+    [items, composerItemId],
+  );
+
   const openComposer = (itemId: string, existing?: Review) => {
     if (!user) return toast.error("Sign in to leave a review");
-    setOpenItem(itemId);
+    setComposerItemId(itemId);
     if (existing) {
       setEditingId(existing.id);
       setDraft({ rating: existing.rating, comment: existing.comment });
@@ -127,14 +133,14 @@ function ReviewsPage() {
   };
 
   const closeComposer = () => {
-    setOpenItem(null);
+    setComposerItemId(null);
     setEditingId(null);
     setDraft({ rating: 5, comment: "" });
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !openItem) return;
+    if (!user || !composerItemId) return;
     try { commentSchema.parse(draft.comment); }
     catch { return toast.error("Comment must be 3–1000 characters"); }
     if (draft.rating < 1 || draft.rating > 5) return toast.error("Pick a rating");
@@ -142,7 +148,7 @@ function ReviewsPage() {
     setBusy(true);
     const payload = {
       user_id: user.id,
-      menu_item_id: openItem,
+      menu_item_id: composerItemId,
       rating: draft.rating,
       comment: draft.comment.trim(),
       author_name: authorName.trim() || "Guest",
@@ -156,6 +162,7 @@ function ReviewsPage() {
     closeComposer();
     loadReviews();
   };
+
 
   const removeReview = async (id: string) => {
     if (!confirm("Delete your review?")) return;
