@@ -1,8 +1,42 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Star, Flame, MapPin, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Star, Flame, MapPin, Clock, Mail } from "lucide-react";
 import heroPizza from "@/assets/hero-pizza.jpg";
+import heroRicotta from "@/assets/hero-ricotta.jpg";
+import heroAntipasti from "@/assets/hero-antipasti.jpg";
 import interior from "@/assets/interior.jpg";
 import dishes from "@/assets/dishes.jpg";
+
+const HERO_SLIDES = [
+  { src: heroPizza, alt: "Oak-fired pizza with burrata and prosciutto" },
+  { src: heroRicotta, alt: "Whipped ricotta pizza with hot honey" },
+  { src: heroAntipasti, alt: "Italian antipasti spread with arancini and cannoli" },
+];
+
+function HeroSlideshow() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setI((n) => (n + 1) % HERO_SLIDES.length), 5000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="absolute inset-0">
+      {HERO_SLIDES.map((s, idx) => (
+        <img
+          key={s.src}
+          src={s.src}
+          alt={s.alt}
+          width={1600}
+          height={1200}
+          loading={idx === 0 ? "eager" : "lazy"}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1500ms] ${idx === i ? "opacity-100" : "opacity-0"}`}
+        />
+      ))}
+      <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-charcoal/30 to-charcoal/90" />
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
