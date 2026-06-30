@@ -134,9 +134,9 @@ function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { name: "Burrata Banger", note: "Fresh burrata, San Marzano, basil, olive oil", price: "$22" },
-            { name: "Ricky Ricotta", note: "Whipped ricotta, hot honey, cracked pepper", price: "$20" },
-            { name: "The White Pie", note: "Mozzarella, garlic cream, pecorino, herbs", price: "$21" },
+            { name: "Burrata Banger", note: "Fresh burrata, San Marzano, basil, olive oil", price: "$14" },
+            { name: "Ricky Ricotta", note: "Whipped ricotta, hot honey, cracked pepper", price: "$13" },
+            { name: "The White Pie", note: "Mozzarella, garlic cream, pecorino, herbs", price: "$13" },
           ].map((p) => (
             <Link
               key={p.name}
