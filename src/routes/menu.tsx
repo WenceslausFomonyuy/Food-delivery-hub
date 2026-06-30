@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Plus, Check } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Check, Search, X, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
@@ -33,9 +33,29 @@ type Item = {
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
 
+const MEAT_RE = /\b(pepperoni|sausage|meatball|prosciutto|salami|guanciale|pancetta|bacon|chicken|beef|pork|lamb|soppressata|nduja|'nduja)\b/i;
+const SEAFOOD_RE = /\b(anchov|shrimp|prawn|tuna|salmon|clam|squid|calamari|seafood|fish)\b/i;
+
+const DIET_TAGS: { key: string; label: string; test: (text: string) => boolean }[] = [
+  { key: "meat", label: "Meat", test: (t) => MEAT_RE.test(t) },
+  { key: "seafood", label: "Seafood", test: (t) => SEAFOOD_RE.test(t) },
+  { key: "vegetarian", label: "Vegetarian", test: (t) => !MEAT_RE.test(t) && !SEAFOOD_RE.test(t) },
+  { key: "vegan", label: "Vegan", test: (t) => /\bvegan\b/i.test(t) },
+  { key: "spicy", label: "Spicy", test: (t) => /\b(spicy|chili|chilli|calabrian|hot honey|nduja|'nduja)\b/i.test(t) },
+  { key: "cheesy", label: "Cheesy", test: (t) => /\b(mozzarella|ricotta|parmes|parmigian|pecorino|gorgonzola|burrata|cheese|stracciatella|fontina)\b/i.test(t) },
+  { key: "gluten-free", label: "Gluten-free", test: (t) => /\bgluten[- ]free\b/i.test(t) },
+];
+
+function itemTags(i: Item): string[] {
+  const text = `${i.name} ${i.description ?? ""}`;
+  return DIET_TAGS.filter((t) => t.test(text)).map((t) => t.key);
+}
+
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
+
+type SortKey = "default" | "price-asc" | "price-desc" | "name";
 
 function MenuPage() {
   const { item: focusItem } = Route.useSearch();
@@ -44,6 +64,15 @@ function MenuPage() {
   const [added, setAdded] = useState<Record<string, number>>({});
   const [highlight, setHighlight] = useState<string | null>(null);
   const { add } = useCart();
+
+  // Filters
+  const [query, setQuery] = useState("");
+  const [activeCats, setActiveCats] = useState<string[]>([]);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [popularOnly, setPopularOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [sort, setSort] = useState<SortKey>("default");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     supabase
