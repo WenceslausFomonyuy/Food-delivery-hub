@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Phone, Globe } from "lucide-react";
+import { MapPin, Mail, Globe } from "lucide-react";
 
 export function SiteFooter() {
   return (
