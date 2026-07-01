@@ -64,6 +64,7 @@ function MenuPage() {
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<Record<string, number>>({});
   const [highlight, setHighlight] = useState<string | null>(null);
+  const [detailsItem, setDetailsItem] = useState<Item | null>(null);
   const { add } = useCart();
 
   // Filters
