@@ -373,6 +373,7 @@ function MenuPage() {
             <ul className="space-y-4">
               {grouped[cat].map((item) => {
                 const justAdded = !!added[item.id];
+                const tags = itemTags(item);
                 return (
                   <li
                     key={item.id}
@@ -383,19 +384,36 @@ function MenuPage() {
                         : "hover:bg-secondary/60"
                     }`}
                   >
-                    <div className="flex-1 min-w-0">
-
-
+                    <button
+                      type="button"
+                      onClick={() => setDetailsItem(item)}
+                      className="flex-1 min-w-0 text-left"
+                      aria-label={`View details for ${item.name}`}
+                    >
                       <div className="flex items-baseline gap-3 flex-wrap">
-                        <h3 className="font-display text-xl">{item.name}</h3>
+                        <h3 className="font-display text-xl group-hover:text-primary transition-colors">{item.name}</h3>
                         {item.popular && (
                           <span className="text-[10px] uppercase tracking-widest bg-accent/20 text-primary px-2 py-0.5 rounded-full">
                             Popular
                           </span>
                         )}
+                        <Info size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      {item.description && <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{item.description}</p>}
-                    </div>
+                      {item.description && <p className="mt-1 text-sm text-muted-foreground leading-relaxed line-clamp-2">{item.description}</p>}
+                      {tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {tags.map((k) => {
+                            const t = DIET_TAGS.find((d) => d.key === k);
+                            if (!t) return null;
+                            return (
+                              <span key={k} className="text-[10px] uppercase tracking-wider bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
+                                {t.label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </button>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="font-display text-lg text-primary">${Number(item.price).toFixed(2)}</span>
                       <button
@@ -417,6 +435,52 @@ function MenuPage() {
           </section>
         ))}
       </div>
+
+      <Dialog open={!!detailsItem} onOpenChange={(o) => !o && setDetailsItem(null)}>
+        <DialogContent className="max-w-md">
+          {detailsItem && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-2xl">{detailsItem.name}</DialogTitle>
+                <DialogDescription className="text-xs uppercase tracking-widest">
+                  {detailsItem.category}
+                </DialogDescription>
+              </DialogHeader>
+              {detailsItem.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{detailsItem.description}</p>
+              )}
+              {(() => {
+                const tags = itemTags(detailsItem);
+                return tags.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((k) => {
+                      const t = DIET_TAGS.find((d) => d.key === k);
+                      if (!t) return null;
+                      return (
+                        <span key={k} className="text-[10px] uppercase tracking-wider bg-secondary px-2 py-0.5 rounded-full">
+                          {t.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : null;
+              })()}
+              <DialogFooter className="sm:justify-between items-center gap-3">
+                <span className="font-display text-2xl text-primary">${Number(detailsItem.price).toFixed(2)}</span>
+                <button
+                  onClick={() => {
+                    handleAdd(detailsItem);
+                    setDetailsItem(null);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:opacity-90 shadow-[var(--shadow-warm)]"
+                >
+                  <Plus size={16} /> Add to cart
+                </button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
