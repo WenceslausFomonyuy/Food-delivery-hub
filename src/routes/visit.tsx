@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { MapPin, Phone, Globe, Clock, Mail } from "lucide-react";
+import { MapPin, Globe, Clock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/visit")({
@@ -64,11 +64,11 @@ function VisitPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Phone className="text-primary mt-1" size={18} />
+              <Mail className="text-primary mt-1" size={18} />
               <div>
-                <h3 className="font-display text-lg">Phone</h3>
-                <a href="tel:+13038625323" className="text-sm text-muted-foreground hover:text-primary mt-1 block">
-                  +1 303-862-5323
+                <h3 className="font-display text-lg">Email</h3>
+                <a href="mailto:cswhitepiefoods@gmail.com" className="text-sm text-muted-foreground hover:text-primary mt-1 block break-all">
+                  cswhitepiefoods@gmail.com
                 </a>
               </div>
             </div>
