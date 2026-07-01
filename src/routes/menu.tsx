@@ -34,7 +34,7 @@ type Item = {
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
 
-const MEAT_RE = /\b(pepperoni|sausage|meatball|prosciutto|salami|guanciale|pancetta|bacon|chicken|beef|pork|lamb|soppressata|nduja|'nduja)\b/i;
+const MEAT_RE = /\b(pepperoni|sausage|meatball|prosciutto|salami|guanciale|pancetta|bacon|chicken|beef|pork|lamb|soppressata|nduja|'nduja|turkey|ham|ribeye|steak|brisket|frank|hot dog|wing|wings|tender|tenders|patty|patties|cheeseburger|burger|cheesesteak|philly)\b/i;
 const SEAFOOD_RE = /\b(anchov|shrimp|prawn|tuna|salmon|clam|squid|calamari|seafood|fish)\b/i;
 
 const DIET_TAGS: { key: string; label: string; test: (text: string) => boolean }[] = [
@@ -42,8 +42,8 @@ const DIET_TAGS: { key: string; label: string; test: (text: string) => boolean }
   { key: "seafood", label: "Seafood", test: (t) => SEAFOOD_RE.test(t) },
   { key: "vegetarian", label: "Vegetarian", test: (t) => !MEAT_RE.test(t) && !SEAFOOD_RE.test(t) },
   { key: "vegan", label: "Vegan", test: (t) => /\bvegan\b/i.test(t) },
-  { key: "spicy", label: "Spicy", test: (t) => /\b(spicy|chili|chilli|calabrian|hot honey|nduja|'nduja)\b/i.test(t) },
-  { key: "cheesy", label: "Cheesy", test: (t) => /\b(mozzarella|ricotta|parmes|parmigian|pecorino|gorgonzola|burrata|cheese|stracciatella|fontina)\b/i.test(t) },
+  { key: "spicy", label: "Spicy", test: (t) => /\b(spicy|chili|chilli|calabrian|hot honey|nduja|'nduja|buffalo|jalape(n|ñ)o|chipotle|sriracha|hot sauce)\b/i.test(t) },
+  { key: "cheesy", label: "Cheesy", test: (t) => /\b(mozzarella|ricotta|parmes|parmigian|pecorino|gorgonzola|burrata|cheese|stracciatella|fontina|cheddar|provolone|american cheese|blue cheese)\b/i.test(t) },
   { key: "gluten-free", label: "Gluten-free", test: (t) => /\bgluten[- ]free\b/i.test(t) },
 ];
 
