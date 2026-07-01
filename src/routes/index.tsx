@@ -215,11 +215,11 @@ function HomePage() {
           Save us a seat?
         </h2>
         <p className="mt-6 text-muted-foreground max-w-xl mx-auto">
-          Walk-ins welcome. Larger parties — give us a call and we'll make room.
+          Walk-ins welcome. Larger parties — send us a note and we'll make room.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a href="tel:+13038625323" className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition">
-            Call +1 303-862-5323
+          <a href="mailto:cswhitepiefoods@gmail.com" className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition">
+            Email cswhitepiefoods@gmail.com
           </a>
           <Link to="/visit" className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium hover:bg-secondary transition">
             Get directions
