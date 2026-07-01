@@ -110,9 +110,9 @@ function HomePage() {
             <Star size={18} className="shrink-0 text-primary" />
             <span className="truncate text-foreground/80">4.5 ★ Google</span>
           </Link>
-          <a href="mailto:info@whitepie.com" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
+          <a href="mailto:cswhitepiefoods@gmail.com" className="flex items-center gap-3 hover:text-primary transition-colors min-w-0">
             <Mail size={18} className="shrink-0 text-primary" />
-            <span className="truncate text-foreground/80">info@whitepie.com</span>
+            <span className="truncate text-foreground/80">cswhitepiefoods@gmail.com</span>
           </a>
         </div>
       </section>
