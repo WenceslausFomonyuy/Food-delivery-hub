@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { MapPin, Phone, Globe, Clock, Mail } from "lucide-react";
+import { MapPin, Globe, Clock, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/visit")({
