@@ -18,8 +18,8 @@ export function SiteFooter() {
             <MapPin size={16} className="mt-0.5 shrink-0" />
             <span>1702 N Humboldt St<br />Denver, CO 80218</span>
           </a>
-          <a href="tel:+13038625323" className="flex items-center gap-2 text-cream/80 hover:text-accent transition">
-            <Phone size={16} /> +1 303-862-5323
+          <a href="mailto:cswhitepiefoods@gmail.com" className="flex items-center gap-2 text-cream/80 hover:text-accent transition break-all">
+            <Mail size={16} /> cswhitepiefoods@gmail.com
           </a>
           <a href="https://whitepie.com" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-cream/80 hover:text-accent transition">
             <Globe size={16} /> whitepie.com
