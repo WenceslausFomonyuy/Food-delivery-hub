@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Check, Search, X, SlidersHorizontal } from "lucide-react";
+import { Plus, Check, Search, X, SlidersHorizontal, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/menu")({
   validateSearch: (search: Record<string, unknown>) => ({
