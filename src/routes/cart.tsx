@@ -154,8 +154,8 @@ function CartPage() {
 
         <div className="text-center pt-2">
           <p className="text-xs text-muted-foreground">Questions about your order?</p>
-          <a href="mailto:info@whitepie.com" className="text-sm font-medium text-primary hover:underline">
-            info@whitepie.com
+          <a href="mailto:cswhitepiefoods@gmail.com" className="text-sm font-medium text-primary hover:underline">
+            cswhitepiefoods@gmail.com
           </a>
         </div>
       </div>
