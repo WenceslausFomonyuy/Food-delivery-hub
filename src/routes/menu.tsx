@@ -440,19 +440,43 @@ function MenuPage() {
                         </div>
                       )}
                     </button>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       <span className="font-display text-lg text-primary">${Number(item.price).toFixed(2)}</span>
-                      <button
-                        onClick={() => handleAdd(item)}
-                        aria-label={`Add ${item.name}`}
-                        className={`inline-flex items-center justify-center w-9 h-9 rounded-full transition ${
-                          justAdded
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-primary text-primary-foreground hover:opacity-90 shadow-[var(--shadow-warm)]"
-                        }`}
-                      >
-                        {justAdded ? <Check size={16} /> : <Plus size={16} />}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <div className="inline-flex items-center rounded-full border border-border bg-background">
+                          <button
+                            type="button"
+                            onClick={() => setItemQty(item.id, getQty(item.id) - 1)}
+                            aria-label={`Decrease quantity of ${item.name}`}
+                            className="w-7 h-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
+                            disabled={getQty(item.id) <= 1}
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span className="w-6 text-center text-sm tabular-nums" aria-live="polite">
+                            {getQty(item.id)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setItemQty(item.id, getQty(item.id) + 1)}
+                            aria-label={`Increase quantity of ${item.name}`}
+                            className="w-7 h-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleAdd(item, getQty(item.id))}
+                          aria-label={`Add ${getQty(item.id)} × ${item.name}`}
+                          className={`inline-flex items-center justify-center w-9 h-9 rounded-full transition ${
+                            justAdded
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-primary text-primary-foreground hover:opacity-90 shadow-[var(--shadow-warm)]"
+                          }`}
+                        >
+                          {justAdded ? <Check size={16} /> : <Plus size={16} />}
+                        </button>
+                      </div>
                     </div>
                   </li>
                 );
