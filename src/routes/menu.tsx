@@ -388,6 +388,24 @@ function MenuPage() {
                     <button
                       type="button"
                       onClick={() => setDetailsItem(item)}
+                      className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-secondary relative"
+                      aria-label={`View details for ${item.name}`}
+                    >
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">🍽️</div>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDetailsItem(item)}
                       className="flex-1 min-w-0 text-left"
                       aria-label={`View details for ${item.name}`}
                     >
