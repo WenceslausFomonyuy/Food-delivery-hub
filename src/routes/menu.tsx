@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Check, Search, X, SlidersHorizontal, Info } from "lucide-react";
+import { Plus, Check, Search, X, SlidersHorizontal, Info, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
@@ -66,7 +66,11 @@ function MenuPage() {
   const [added, setAdded] = useState<Record<string, number>>({});
   const [highlight, setHighlight] = useState<string | null>(null);
   const [detailsItem, setDetailsItem] = useState<Item | null>(null);
+  const [qty, setQty] = useState<Record<string, number>>({});
   const { add } = useCart();
+
+  const getQty = (id: string) => qty[id] ?? 1;
+  const setItemQty = (id: string, n: number) => setQty((q) => ({ ...q, [id]: Math.max(1, Math.min(99, n)) }));
 
   // Filters
   const [query, setQuery] = useState("");
@@ -105,10 +109,13 @@ function MenuPage() {
   }, [focusItem, items]);
 
 
-  const handleAdd = (item: Item) => {
-    add({ id: item.id, name: item.name, price: Number(item.price) });
+  const handleAdd = (item: Item, count = 1) => {
+    for (let i = 0; i < count; i++) {
+      add({ id: item.id, name: item.name, price: Number(item.price) });
+    }
     setAdded((a) => ({ ...a, [item.id]: Date.now() }));
-    toast.success(`${item.name} added to cart`);
+    toast.success(`${count} × ${item.name} added to cart`);
+    setItemQty(item.id, 1);
     setTimeout(() => setAdded((a) => {
       const n = { ...a }; delete n[item.id]; return n;
     }), 1200);
@@ -433,19 +440,43 @@ function MenuPage() {
                         </div>
                       )}
                     </button>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       <span className="font-display text-lg text-primary">${Number(item.price).toFixed(2)}</span>
-                      <button
-                        onClick={() => handleAdd(item)}
-                        aria-label={`Add ${item.name}`}
-                        className={`inline-flex items-center justify-center w-9 h-9 rounded-full transition ${
-                          justAdded
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-primary text-primary-foreground hover:opacity-90 shadow-[var(--shadow-warm)]"
-                        }`}
-                      >
-                        {justAdded ? <Check size={16} /> : <Plus size={16} />}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <div className="inline-flex items-center rounded-full border border-border bg-background">
+                          <button
+                            type="button"
+                            onClick={() => setItemQty(item.id, getQty(item.id) - 1)}
+                            aria-label={`Decrease quantity of ${item.name}`}
+                            className="w-7 h-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
+                            disabled={getQty(item.id) <= 1}
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span className="w-6 text-center text-sm tabular-nums" aria-live="polite">
+                            {getQty(item.id)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setItemQty(item.id, getQty(item.id) + 1)}
+                            aria-label={`Increase quantity of ${item.name}`}
+                            className="w-7 h-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleAdd(item, getQty(item.id))}
+                          aria-label={`Add ${getQty(item.id)} × ${item.name}`}
+                          className={`inline-flex items-center justify-center w-9 h-9 rounded-full transition ${
+                            justAdded
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-primary text-primary-foreground hover:opacity-90 shadow-[var(--shadow-warm)]"
+                          }`}
+                        >
+                          {justAdded ? <Check size={16} /> : <Plus size={16} />}
+                        </button>
+                      </div>
                     </div>
                   </li>
                 );
@@ -496,15 +527,37 @@ function MenuPage() {
               })()}
               <DialogFooter className="sm:justify-between items-center gap-3">
                 <span className="font-display text-2xl text-primary">${Number(detailsItem.price).toFixed(2)}</span>
-                <button
-                  onClick={() => {
-                    handleAdd(detailsItem);
-                    setDetailsItem(null);
-                  }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:opacity-90 shadow-[var(--shadow-warm)]"
-                >
-                  <Plus size={16} /> Add to cart
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center rounded-full border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(detailsItem.id, getQty(detailsItem.id) - 1)}
+                      aria-label="Decrease quantity"
+                      className="w-8 h-8 inline-flex items-center justify-center disabled:opacity-40"
+                      disabled={getQty(detailsItem.id) <= 1}
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="w-7 text-center text-sm tabular-nums">{getQty(detailsItem.id)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(detailsItem.id, getQty(detailsItem.id) + 1)}
+                      aria-label="Increase quantity"
+                      className="w-8 h-8 inline-flex items-center justify-center"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleAdd(detailsItem, getQty(detailsItem.id));
+                      setDetailsItem(null);
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:opacity-90 shadow-[var(--shadow-warm)]"
+                  >
+                    <Plus size={16} /> Add to cart
+                  </button>
+                </div>
               </DialogFooter>
             </>
           )}
