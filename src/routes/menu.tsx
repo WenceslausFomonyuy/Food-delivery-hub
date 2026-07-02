@@ -66,7 +66,11 @@ function MenuPage() {
   const [added, setAdded] = useState<Record<string, number>>({});
   const [highlight, setHighlight] = useState<string | null>(null);
   const [detailsItem, setDetailsItem] = useState<Item | null>(null);
+  const [qty, setQty] = useState<Record<string, number>>({});
   const { add } = useCart();
+
+  const getQty = (id: string) => qty[id] ?? 1;
+  const setItemQty = (id: string, n: number) => setQty((q) => ({ ...q, [id]: Math.max(1, Math.min(99, n)) }));
 
   // Filters
   const [query, setQuery] = useState("");
