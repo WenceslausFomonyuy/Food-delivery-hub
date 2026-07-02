@@ -459,6 +459,16 @@ function MenuPage() {
         <DialogContent className="max-w-md">
           {detailsItem && (
             <>
+              {detailsItem.image_url && (
+                <div className="-mx-6 -mt-6 mb-2 aspect-[16/10] overflow-hidden bg-secondary">
+                  <img
+                    src={detailsItem.image_url}
+                    alt={detailsItem.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">{detailsItem.name}</DialogTitle>
                 <DialogDescription className="text-xs uppercase tracking-widest">
