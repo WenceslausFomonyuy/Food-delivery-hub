@@ -30,6 +30,7 @@ type Item = {
   category: string;
   popular: boolean;
   sort_order: number;
+  image_url: string | null;
 };
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
@@ -387,6 +388,24 @@ function MenuPage() {
                     <button
                       type="button"
                       onClick={() => setDetailsItem(item)}
+                      className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-secondary relative"
+                      aria-label={`View details for ${item.name}`}
+                    >
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl">🍽️</div>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDetailsItem(item)}
                       className="flex-1 min-w-0 text-left"
                       aria-label={`View details for ${item.name}`}
                     >
@@ -440,6 +459,16 @@ function MenuPage() {
         <DialogContent className="max-w-md">
           {detailsItem && (
             <>
+              {detailsItem.image_url && (
+                <div className="-mx-6 -mt-6 mb-2 aspect-[16/10] overflow-hidden bg-secondary">
+                  <img
+                    src={detailsItem.image_url}
+                    alt={detailsItem.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">{detailsItem.name}</DialogTitle>
                 <DialogDescription className="text-xs uppercase tracking-widest">
