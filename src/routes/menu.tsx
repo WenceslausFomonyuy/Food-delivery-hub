@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Check, Search, X, SlidersHorizontal, Info } from "lucide-react";
+import { Plus, Check, Search, X, SlidersHorizontal, Info, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
