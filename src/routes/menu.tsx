@@ -527,15 +527,37 @@ function MenuPage() {
               })()}
               <DialogFooter className="sm:justify-between items-center gap-3">
                 <span className="font-display text-2xl text-primary">${Number(detailsItem.price).toFixed(2)}</span>
-                <button
-                  onClick={() => {
-                    handleAdd(detailsItem);
-                    setDetailsItem(null);
-                  }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:opacity-90 shadow-[var(--shadow-warm)]"
-                >
-                  <Plus size={16} /> Add to cart
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center rounded-full border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(detailsItem.id, getQty(detailsItem.id) - 1)}
+                      aria-label="Decrease quantity"
+                      className="w-8 h-8 inline-flex items-center justify-center disabled:opacity-40"
+                      disabled={getQty(detailsItem.id) <= 1}
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="w-7 text-center text-sm tabular-nums">{getQty(detailsItem.id)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(detailsItem.id, getQty(detailsItem.id) + 1)}
+                      aria-label="Increase quantity"
+                      className="w-8 h-8 inline-flex items-center justify-center"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleAdd(detailsItem, getQty(detailsItem.id));
+                      setDetailsItem(null);
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:opacity-90 shadow-[var(--shadow-warm)]"
+                  >
+                    <Plus size={16} /> Add to cart
+                  </button>
+                </div>
               </DialogFooter>
             </>
           )}
