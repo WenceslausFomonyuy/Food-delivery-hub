@@ -30,6 +30,7 @@ type Item = {
   category: string;
   popular: boolean;
   sort_order: number;
+  image_url: string | null;
 };
 
 const CATEGORY_ORDER = ["Antipasti", "Oak-Fired Pies", "Mains", "Dolci"];
