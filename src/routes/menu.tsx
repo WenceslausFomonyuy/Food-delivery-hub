@@ -109,10 +109,13 @@ function MenuPage() {
   }, [focusItem, items]);
 
 
-  const handleAdd = (item: Item) => {
-    add({ id: item.id, name: item.name, price: Number(item.price) });
+  const handleAdd = (item: Item, count = 1) => {
+    for (let i = 0; i < count; i++) {
+      add({ id: item.id, name: item.name, price: Number(item.price) });
+    }
     setAdded((a) => ({ ...a, [item.id]: Date.now() }));
-    toast.success(`${item.name} added to cart`);
+    toast.success(`${count} × ${item.name} added to cart`);
+    setItemQty(item.id, 1);
     setTimeout(() => setAdded((a) => {
       const n = { ...a }; delete n[item.id]; return n;
     }), 1200);
